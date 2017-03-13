@@ -202,42 +202,91 @@ namespace Hsm
 			Args = aArgs;
 		}
 
+		// None transition
+
 		public static Transition None()
 		{
 			return new Transition(TransitionType.None, null, null);
 		}
 
-		public static Transition Inner(Type aTargetStateType, params object[] aArgs)
+		// Inner transitions
+		
+		public static Transition Inner(Type aTargetStateType, object[] aArgs = null)
 		{
-			//@NOTE: passing no 'params' results in a zero-length array, but we pass in null to simplify our code
-			return new Transition(TransitionType.Inner, aTargetStateType, aArgs.Length == 0 ? null : aArgs);
+			return new Transition(TransitionType.Inner, aTargetStateType, aArgs);
 		}
 
-		public static Transition Inner<TargetStateType>(params object[] aArgs) where TargetStateType : State
+		public static Transition Inner(Type aTargetStateType, object aArg1, params object[] aArgsRest)
 		{
-			//@NOTE: passing no 'params' results in a zero-length array, but we pass in null to simplify our code
+			object[] args = new object[aArgsRest.Length + 1];
+			args[0] = aArg1;
+			if (aArgsRest.Length > 0)
+				aArgsRest.CopyTo(args, 1);
+			return new Transition(TransitionType.Inner, aTargetStateType, args);
+		}
+
+		public static Transition Inner<TargetStateType>(object[] aArgs = null) where TargetStateType : State
+		{
 			return Inner(typeof(TargetStateType), aArgs);
 		}
 
-		public static Transition InnerEntry(Type aTargetStateType, params object[] aArgs)
+		public static Transition Inner<TargetStateType>(object aArg1, params object[] aArgsRest) where TargetStateType : State
 		{
-			return new Transition(TransitionType.InnerEntry, aTargetStateType, aArgs.Length == 0 ? null : aArgs);
+			return Inner(typeof(TargetStateType), aArg1, aArgsRest);
+		}
+		
+		// InnerEntry transitions
+
+		public static Transition InnerEntry(Type aTargetStateType, object[] aArgs = null)
+		{
+			return new Transition(TransitionType.InnerEntry, aTargetStateType, aArgs);
 		}
 
-		public static Transition InnerEntry<TargetStateType>(params object[] aArgs) where TargetStateType : State
+		public static Transition InnerEntry(Type aTargetStateType, object aArg1, params object[] aArgsRest)
+		{
+			object[] args = new object[aArgsRest.Length + 1];
+			args[0] = aArg1;
+			if (aArgsRest.Length > 0)
+				aArgsRest.CopyTo(args, 1);
+			return new Transition(TransitionType.InnerEntry, aTargetStateType, args);
+		}
+
+		public static Transition InnerEntry<TargetStateType>(object[] aArgs = null) where TargetStateType : State
 		{
 			return InnerEntry(typeof(TargetStateType), aArgs);
 		}
 
-		public static Transition Sibling(Type aTargetStateType, params object[] aArgs)
+		public static Transition InnerEntry<TargetStateType>(object aArg1, params object[] aArgsRest) where TargetStateType : State
 		{
-			return new Transition(TransitionType.Sibling, aTargetStateType, aArgs.Length == 0 ? null : aArgs);
+			return InnerEntry(typeof(TargetStateType), aArg1, aArgsRest);
 		}
 
-		public static Transition Sibling<TargetStateType>(params object[] aArgs) where TargetStateType : State
+		// Sibling transitions
+
+		public static Transition Sibling(Type aTargetStateType, object[] aArgs = null)
+		{
+			return new Transition(TransitionType.Sibling, aTargetStateType, aArgs);
+		}
+
+		public static Transition Sibling(Type aTargetStateType, object aArg1, params object[] aArgsRest)
+		{
+			object[] args = new object[aArgsRest.Length + 1];
+			args[0] = aArg1;
+			if (aArgsRest.Length > 0)
+				aArgsRest.CopyTo(args, 1);
+			return new Transition(TransitionType.Sibling, aTargetStateType, args);
+		}
+
+		public static Transition Sibling<TargetStateType>(object[] aArgs = null) where TargetStateType : State
 		{
 			return Sibling(typeof(TargetStateType), aArgs);
 		}
+
+		public static Transition Sibling<TargetStateType>(object aArg1, params object[] aArgsRest) where TargetStateType : State
+		{
+			return Sibling(typeof(TargetStateType), aArg1, aArgsRest);
+		}
+
 
 		public override string ToString()
 		{
