@@ -202,42 +202,79 @@ namespace Hsm
 			Args = aArgs;
 		}
 
+		// None transition
+
 		public static Transition None()
 		{
 			return new Transition(TransitionType.None, null, null);
 		}
 
-		public static Transition Inner(Type aTargetStateType, params object[] aArgs)
+		// Inner transitions
+		
+		public static Transition Inner(Type aTargetStateType)
 		{
-			//@NOTE: passing no 'params' results in a zero-length array, but we pass in null to simplify our code
-			return new Transition(TransitionType.Inner, aTargetStateType, aArgs.Length == 0 ? null : aArgs);
+			return new Transition(TransitionType.Inner, aTargetStateType, null);
 		}
 
-		public static Transition Inner<TargetStateType>(params object[] aArgs) where TargetStateType : State
+		public static Transition InnerWithArgs(Type aTargetStateType, object[] aArgs)
 		{
-			//@NOTE: passing no 'params' results in a zero-length array, but we pass in null to simplify our code
-			return Inner(typeof(TargetStateType), aArgs);
+			return new Transition(TransitionType.Inner, aTargetStateType, aArgs);
 		}
 
-		public static Transition InnerEntry(Type aTargetStateType, params object[] aArgs)
+		public static Transition Inner<TargetStateType>() where TargetStateType : State
 		{
-			return new Transition(TransitionType.InnerEntry, aTargetStateType, aArgs.Length == 0 ? null : aArgs);
+			return Inner(typeof(TargetStateType));
 		}
 
-		public static Transition InnerEntry<TargetStateType>(params object[] aArgs) where TargetStateType : State
+		public static Transition InnerWithArgs<TargetStateType>(params object[] aArgs) where TargetStateType : State
 		{
-			return InnerEntry(typeof(TargetStateType), aArgs);
+			return InnerWithArgs(typeof(TargetStateType), aArgs);
+		}
+		
+		// InnerEntry transitions
+
+		public static Transition InnerEntry(Type aTargetStateType)
+		{
+			return new Transition(TransitionType.InnerEntry, aTargetStateType, null);
 		}
 
-		public static Transition Sibling(Type aTargetStateType, params object[] aArgs)
+		public static Transition InnerEntryWithArgs(Type aTargetStateType, params object[] aArgs)
 		{
-			return new Transition(TransitionType.Sibling, aTargetStateType, aArgs.Length == 0 ? null : aArgs);
+			return new Transition(TransitionType.InnerEntry, aTargetStateType, aArgs);
 		}
 
-		public static Transition Sibling<TargetStateType>(params object[] aArgs) where TargetStateType : State
+		public static Transition InnerEntry<TargetStateType>() where TargetStateType : State
 		{
-			return Sibling(typeof(TargetStateType), aArgs);
+			return InnerEntry(typeof(TargetStateType));
 		}
+
+		public static Transition InnerEntryWithArgs<TargetStateType>(params object[] aArgs) where TargetStateType : State
+		{
+			return InnerEntryWithArgs(typeof(TargetStateType), aArgs);
+		}
+
+		// Sibling transitions
+
+		public static Transition Sibling(Type aTargetStateType, object[] aArgs = null)
+		{
+			return new Transition(TransitionType.Sibling, aTargetStateType, aArgs);
+		}
+
+		public static Transition SiblingWithArgs(Type aTargetStateType, params object[] aArgs)
+		{
+			return new Transition(TransitionType.Sibling, aTargetStateType, aArgs);
+		}
+
+		public static Transition Sibling<TargetStateType>() where TargetStateType : State
+		{
+			return Sibling(typeof(TargetStateType));
+		}
+
+		public static Transition SiblingWithArgs<TargetStateType>(params object[] aArgs) where TargetStateType : State
+		{
+			return SiblingWithArgs(typeof(TargetStateType), aArgs);
+		}
+
 
 		public override string ToString()
 		{
