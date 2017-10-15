@@ -62,8 +62,10 @@ namespace Hsm
         ///////////////////////////////
         // Accessors
         ///////////////////////////////
+        public StateMachine StateMachine { get { return mOwnerStateMachine; } }
 
-        public StateMachine OwnerStateMachine { get { return mOwnerStateMachine; } }
+        [System.Obsolete("Use StateMachine property instead")]
+        public StateMachine OwnerStateMachine { get { return StateMachine; } }
 
         public StateType FindState<StateType>() where StateType : State { return mOwnerStateMachine.FindState<StateType>(); }
         public StateType GetState<StateType>() where StateType : State { return mOwnerStateMachine.GetState<StateType>(); }
