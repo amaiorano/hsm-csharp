@@ -62,6 +62,7 @@ namespace Hsm
         ///////////////////////////////
         // Accessors
         ///////////////////////////////
+
         public StateMachine StateMachine { get { return mOwnerStateMachine; } }
 
         [System.Obsolete("Use StateMachine property instead")]
@@ -78,6 +79,7 @@ namespace Hsm
             Debug.Assert(result != null, string.Format("Failed to get outer state on stack: {0}", typeof(StateType)));
             return result;
         }
+        public bool IsInOuterState<StateType>() where StateType : State { return FindOuterState<StateType>() != null; }
 
         public StateType FindInnerState<StateType>() where StateType : State { return mOwnerStateMachine.FindInnerStateFromDepth<StateType>(mStackDepth); }
         public StateType GetInnerState<StateType>() where StateType : State
@@ -86,7 +88,17 @@ namespace Hsm
             Debug.Assert(result != null, string.Format("Failed to get inner state on stack: {0}", typeof(StateType)));
             return result;
         }
+        public bool IsInInnerState<StateType>() where StateType : State { return FindInnerState<StateType>() != null; }
 
+        public StateType FindImmediateInnerState<StateType>() where StateType : State { return FindImmediateInnerState<StateType>(); }
+        public StateType GetImmediateInnerState<StateType>() where StateType : State
+        {
+            StateType result = FindImmediateInnerState<StateType>();
+            Debug.Assert(result != null, string.Format("Failed to get immeidate inner state on stack: {0}", typeof(StateType)));
+            return result;
+        }
+        public bool IsInImmediateInnerState<StateType>() where StateType : State { return FindImmediateInnerState<StateType>() != null; }
+        // Returns generic State, might be useful to query whether current state has an inner state at all
         public State FindImmediateInnerState() { return mOwnerStateMachine.FindStateAtDepth(mStackDepth + 1); }
 
 
@@ -382,6 +394,11 @@ namespace Hsm
             if (aDepth >= 0 && aDepth < mStateStack.Count)
                 return mStateStack[aDepth];
             return null;
+        }
+
+        public State FindStateAtDepth<StateType>(int aDepth) where StateType : State
+        {
+            return FindStateAtDepth(aDepth) as StateType;
         }
 
         public StateType FindOuterStateFromDepth<StateType>(int aDepth) where StateType : State
