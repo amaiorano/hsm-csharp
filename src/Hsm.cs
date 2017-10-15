@@ -1,6 +1,6 @@
 // Hierarchical State Machine (HSM)
 //
-// Copyright (c) 2013 Antonio Maiorano
+// Copyright (c) 2017 Antonio Maiorano
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
@@ -16,6 +16,14 @@ namespace Hsm
     using System.Reflection;
     using System.Diagnostics;
     using System.Text;
+
+    public class Version
+    {
+        public static int Major = 1;
+        public static int Minor = 0;
+        public static int Patch = 0;
+        public static string String = string.Format("{0}.{1}.{2}", Major, Minor, Patch);
+    }
 
     // Client code must provide their own implementation of this class
     public static partial class Client
