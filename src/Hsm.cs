@@ -49,8 +49,15 @@ namespace Hsm
         public virtual void OnEnter() { }
         public virtual void OnEnter(object[] aArgs) { }
         public virtual void OnExit() { }
-        public virtual Transition EvaluateTransitions() { return Transition.None(); }
-        public virtual void PerformStateActions(float aDeltaTime) { }
+        public virtual Transition GetTransition() { return Transition.None(); }
+        public virtual void Update(float aDeltaTime) { }
+
+        [System.Obsolete("Use GetTransition instead")]
+        public virtual Transition EvaluateTransitions() { return GetTransition(); }
+
+        [System.Obsolete("Use Update instead")]
+        public virtual void PerformStateActions(float aDeltaTime) { Update(aDeltaTime); }
+
 
         ///////////////////////////////
         // Accessors
@@ -297,11 +304,11 @@ namespace Hsm
 
         public void Update(float aDeltaTime)
         {
-            EvaluateStateTransitions();
-            PerformStateActions(aDeltaTime);
+            ProcessStateTransitions();
+            UpdateStates(aDeltaTime);
         }
 
-        public void EvaluateStateTransitions()
+        public void ProcessStateTransitions()
         {
             bool isFinishedTransitioning = false;
             int loopCountdown = 100;
@@ -311,7 +318,7 @@ namespace Hsm
                 {
                     mDebugLogLevel = 2;
                 }
-                isFinishedTransitioning = EvaluateTransitionsOnce();
+                isFinishedTransitioning = ProcessStateTransitionsOnce();
             }
 
             if (loopCountdown == 0)
@@ -320,12 +327,25 @@ namespace Hsm
             }
         }
 
-        public void PerformStateActions(float aDeltaTime)
+        public void UpdateStates(float aDeltaTime)
         {
             foreach (State state in mStateStack)
             {
-                state.PerformStateActions(aDeltaTime);
+                state.Update(aDeltaTime);
             }
+        }
+
+
+        [System.Obsolete("Use ProcessStateTransitions instead")]
+        public void EvaluateStateTransitions()
+        {
+            ProcessStateTransitions();
+        }
+
+        [System.Obsolete("Use UpdateStates instead")]
+        public void PerformStateActions(float aDeltaTime)
+        {
+            UpdateStates(aDeltaTime);
         }
 
         public object Owner { get { return mOwner; } }
@@ -565,7 +585,7 @@ namespace Hsm
         }
 
         // Returns true if state stack is unchanged after calling EvaluateTransition on each state (from outer to inner)
-        private bool EvaluateTransitionsOnce()
+        private bool ProcessStateTransitionsOnce()
         {
             if (mStateStack.Count == 0)
             {
@@ -576,7 +596,7 @@ namespace Hsm
             for (int currDepth = 0; currDepth < mStateStack.Count; ++currDepth)
             {
                 State currState = mStateStack[currDepth];
-                Transition trans = currState.EvaluateTransitions();
+                Transition trans = currState.GetTransition();
                 switch (trans.TransitionType)
                 {
                     case TransitionType.None:
