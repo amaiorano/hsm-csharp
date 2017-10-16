@@ -36,7 +36,7 @@ namespace Sample1
 namespace Sample1
 {
     using Hsm;
-    using PlayerState = Hsm.StateT<Player, Object>;
+    using PlayerState = Hsm.StateT<Player>;
 
     partial class Player
     {

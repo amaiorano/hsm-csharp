@@ -146,7 +146,7 @@ namespace Hsm
     }
 
     // Utility base class for states that should be used to access Owner/Data more easily
-    public class StateT<OwnerType, StateDataType> : State
+    public class StateT<OwnerType> : State
     {
         public OwnerType Owner
         {
@@ -158,18 +158,7 @@ namespace Hsm
             }
         }
 
-        public StateDataType Data
-        {
-            get
-            {
-                if (mStateData == null)
-                    mStateData = (StateDataType)mOwnerStateMachine.StateData;
-                return mStateData;
-            }
-        }
-
         private OwnerType mOwner;
-        private StateDataType mStateData;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -295,19 +284,17 @@ namespace Hsm
     {
         private List<State> mStateStack = new List<State>();
         private object mOwner = null;
-        private object mStateData = null;
         private TraceLevel mTraceLevel = TraceLevel.None;
         private Type mInitialStateType;
 
-        public void Init<InitialStateType>(object aOwner = null, object aStateData = null) where InitialStateType : State
+        public void Init<InitialStateType>(object aOwner = null) where InitialStateType : State
         {
-            Init(typeof(InitialStateType), aOwner, aStateData);
+            Init(typeof(InitialStateType), aOwner);
         }
 
-        public void Init(Type aInitialStateType, object aOwner = null, object aStateData = null)
+        public void Init(Type aInitialStateType, object aOwner = null)
         {
             mOwner = aOwner;
-            mStateData = aStateData;
             mInitialStateType = aInitialStateType;
         }
 
@@ -375,7 +362,6 @@ namespace Hsm
         }
 
         public object Owner { get { return mOwner; } }
-        public object StateData { get { return mStateData; } }
         public TraceLevel TraceLevel { get { return mTraceLevel; } set { mTraceLevel = value; } }
 
         [Obsolete("Use TraceLevel instead")]
