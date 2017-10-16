@@ -145,8 +145,12 @@ namespace Hsm
         }
     }
 
-    // Utility base class for states that should be used to access Owner/Data more easily
+    [Obsolete("Use StateWithOwner instead", true)]
     public class StateT<OwnerType> : State
+    { }
+
+    // Utility base class for states that should be used to access Owner/Data more easily
+    public class StateWithOwner<OwnerType> : State
     {
         public OwnerType Owner
         {
