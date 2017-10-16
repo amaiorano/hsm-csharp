@@ -12,17 +12,17 @@ namespace PlayerHsm
     {
         public bool StateDataBool = false;
 
-        public Attribute<float> Attribute_Test = new Attribute<float>(12.03f);
+        public StateVar<float> StateVar_Test = new StateVar<float>(12.03f);
     };
 
     class Root : PlayerState
     {
         public override void OnEnter()
         {
-            SetAttribute(Data.Attribute_Test, 1.0f);
+            SetStateVar(Data.StateVar_Test, 1.0f);
         }
 
-        public override Transition EvaluateTransitions()
+        public override Transition GetTransition()
         {
             //return Transition.Sibling<RootSibling), "Hello!", 2);
             return Transition.Inner<Healthy>();
@@ -36,7 +36,7 @@ namespace PlayerHsm
             var root = GetOuterState<Root>(); // Test being able to grab Root from inner state
         }
 
-        public override Transition EvaluateTransitions()
+        public override Transition GetTransition()
         {
             if (FindInnerState<Driving>() != null)
             {
@@ -52,10 +52,10 @@ namespace PlayerHsm
         public override void OnEnter(object[] aArgs)
         {
             string s = (string)aArgs[0];
-            SetAttribute(Data.Attribute_Test, 2.0f);
+            SetStateVar(Data.StateVar_Test, 2.0f);
         }
 
-        public override Transition EvaluateTransitions()
+        public override Transition GetTransition()
         {
             if (count == 1)
                 return Transition.Sibling<Driving>();
@@ -63,10 +63,10 @@ namespace PlayerHsm
             return Transition.None();
         }
 
-        public override void PerformStateActions(float aDeltaTime)
+        public override void Update(float aDeltaTime)
         {
             Console.Out.WriteLine("Player's Health: {0}, StateDataBool: {1}", Owner.Health, Data.StateDataBool);
-            Console.Out.WriteLine("Data.Attribute_Test: {0}", Data.Attribute_Test.Value);
+            Console.Out.WriteLine("Data.StateVar_Test: {0}", Data.StateVar_Test.Value);
         }
 
         int count;
@@ -74,11 +74,11 @@ namespace PlayerHsm
 
     class Driving : PlayerState
     {
-        public override void PerformStateActions(float aDeltaTime)
+        public override void Update(float aDeltaTime)
         {
-            Console.Out.WriteLine("Data.Attribute_Test: {0}", Data.Attribute_Test.Value);
+            Console.Out.WriteLine("Data.StateVar_Test: {0}", Data.StateVar_Test.Value);
 
-            SetAttribute(Data.Attribute_Test, 3.0f);
+            SetStateVar(Data.StateVar_Test, 3.0f);
         }
     }
 
@@ -90,7 +90,7 @@ namespace PlayerHsm
             int i = (int)aArgs[1];
         }
 
-        public override Transition EvaluateTransitions()
+        public override Transition GetTransition()
         {
             return Transition.Sibling<Root>();
         }
@@ -106,7 +106,7 @@ class Player
     public void Init()
     {
         mStateMachine.Init<PlayerHsm.Root>(this, new PlayerHsm.StateData());
-        mStateMachine.DebugLogLevel = 2;
+        mStateMachine.TraceLevel = Hsm.TraceLevel.Diagnostic;
     }
 
     public void Shutdown()

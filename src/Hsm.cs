@@ -39,7 +39,7 @@ namespace Hsm
     public class State
     {
         internal StateMachine mOwnerStateMachine;
-        internal List<AttributeResetter> mAttributeResetters = null;
+        internal List<StateVarResetter> mStateVarResetters = null;
         internal int mStackDepth;
 
         ///////////////////////////////
@@ -49,14 +49,24 @@ namespace Hsm
         public virtual void OnEnter() { }
         public virtual void OnEnter(object[] aArgs) { }
         public virtual void OnExit() { }
-        public virtual Transition EvaluateTransitions() { return Transition.None(); }
-        public virtual void PerformStateActions(float aDeltaTime) { }
+        public virtual Transition GetTransition() { return Transition.None(); }
+        public virtual void Update(float aDeltaTime) { }
+
+        [Obsolete("Use GetTransition instead")]
+        public virtual Transition EvaluateTransitions() { return GetTransition(); }
+
+        [Obsolete("Use Update instead")]
+        public virtual void PerformStateActions(float aDeltaTime) { Update(aDeltaTime); }
+
 
         ///////////////////////////////
         // Accessors
         ///////////////////////////////
 
-        public StateMachine OwnerStateMachine { get { return mOwnerStateMachine; } }
+        public StateMachine StateMachine { get { return mOwnerStateMachine; } }
+
+        [Obsolete("Use StateMachine property instead")]
+        public StateMachine OwnerStateMachine { get { return StateMachine; } }
 
         public StateType FindState<StateType>() where StateType : State { return mOwnerStateMachine.FindState<StateType>(); }
         public StateType GetState<StateType>() where StateType : State { return mOwnerStateMachine.GetState<StateType>(); }
@@ -69,6 +79,7 @@ namespace Hsm
             Debug.Assert(result != null, string.Format("Failed to get outer state on stack: {0}", typeof(StateType)));
             return result;
         }
+        public bool IsInOuterState<StateType>() where StateType : State { return FindOuterState<StateType>() != null; }
 
         public StateType FindInnerState<StateType>() where StateType : State { return mOwnerStateMachine.FindInnerStateFromDepth<StateType>(mStackDepth); }
         public StateType GetInnerState<StateType>() where StateType : State
@@ -77,44 +88,57 @@ namespace Hsm
             Debug.Assert(result != null, string.Format("Failed to get inner state on stack: {0}", typeof(StateType)));
             return result;
         }
+        public bool IsInInnerState<StateType>() where StateType : State { return FindInnerState<StateType>() != null; }
 
+        public StateType FindImmediateInnerState<StateType>() where StateType : State { return FindImmediateInnerState<StateType>(); }
+        public StateType GetImmediateInnerState<StateType>() where StateType : State
+        {
+            StateType result = FindImmediateInnerState<StateType>();
+            Debug.Assert(result != null, string.Format("Failed to get immeidate inner state on stack: {0}", typeof(StateType)));
+            return result;
+        }
+        public bool IsInImmediateInnerState<StateType>() where StateType : State { return FindImmediateInnerState<StateType>() != null; }
+        // Returns generic State, might be useful to query whether current state has an inner state at all
         public State FindImmediateInnerState() { return mOwnerStateMachine.FindStateAtDepth(mStackDepth + 1); }
 
 
         ///////////////////////////////
-        // Attributes
+        // StateVars
         ///////////////////////////////
 
-        // Use to set value-type attribute
-        public void SetAttribute<T>(Attribute<T> aAttribute, T aValue) where T : struct
-        {
-            if (!IsAttributeInResetterList(aAttribute))
-                mAttributeResetters.Add(new AttributeResetterT<T>(aAttribute));
+        [Obsolete("Use SetStateVar instead", true)]
+        public void SetAttribute<T>(StateVar<T> aStateVar, T aValue) where T : struct { }
 
-            aAttribute.__ValueToBeAccessedByStateMachineOnly = aValue;
+        // Use to set value-type StateVar
+        public void SetStateVar<T>(StateVar<T> aStateVar, T aValue) where T : struct
+        {
+            if (!IsStateVarInResetterList(aStateVar))
+                mStateVarResetters.Add(new StateVarResetterT<T>(aStateVar));
+
+            aStateVar.__ValueToBeAccessedByStateMachineOnly = aValue;
         }
 
-        internal void ResetAllAttributes()
+        internal void ResetAllStateVars()
         {
-            if (mAttributeResetters == null)
+            if (mStateVarResetters == null)
                 return;
 
-            foreach (AttributeResetter resetter in mAttributeResetters)
+            foreach (StateVarResetter resetter in mStateVarResetters)
                 resetter.Reset();
 
-            mAttributeResetters.Clear();
+            mStateVarResetters.Clear();
         }
 
-        private bool IsAttributeInResetterList<T>(Attribute<T> aAttribute)
+        private bool IsStateVarInResetterList<T>(StateVar<T> aStateVar)
         {
-            if (mAttributeResetters == null) // First time, lazily create list
+            if (mStateVarResetters == null) // First time, lazily create list
             {
-                mAttributeResetters = new List<AttributeResetter>();
+                mStateVarResetters = new List<StateVarResetter>();
             }
             else
             {
-                foreach (AttributeResetter resetter in mAttributeResetters)
-                    if (resetter is AttributeResetterT<T>)
+                foreach (StateVarResetter resetter in mStateVarResetters)
+                    if (resetter is StateVarResetterT<T>)
                         return true;
             }
             return false;
@@ -149,46 +173,49 @@ namespace Hsm
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    // Attribute
+    // StateVar
     ///////////////////////////////////////////////////////////////////////////
 
-    public class Attribute<T>
+    [Obsolete("Renamed to StateVar<T> (Search & Replace \"Attribute\" with \"StateVar\")", true)]
+    public class Attribute<T> { }
+
+    public class StateVar<T>
     {
         // Do not access this value from states - would normally be private if I could declare friendship
         internal T __ValueToBeAccessedByStateMachineOnly;
 
-        public Attribute(T aInitialValue) { __ValueToBeAccessedByStateMachineOnly = aInitialValue; }
+        public StateVar(T aInitialValue) { __ValueToBeAccessedByStateMachineOnly = aInitialValue; }
 
-        // Use to read value of attribute
+        // Use to read value of StateVar
         public T Value { get { return __ValueToBeAccessedByStateMachineOnly; } }
 
-        public static implicit operator T(Attribute<T> aAttribute)
+        public static implicit operator T(StateVar<T> aStateVar)
         {
-            return aAttribute.Value;
+            return aStateVar.Value;
         }
     }
 
-    internal class AttributeResetter
+    internal class StateVarResetter
     {
         //@LAME: Can't use destructors like in C++
         public virtual void Reset() { }
     }
 
-    internal class AttributeResetterT<T> : AttributeResetter
+    internal class StateVarResetterT<T> : StateVarResetter
     {
-        private Attribute<T> mAttribute;
+        private StateVar<T> mStateVar;
         private T mOriginalValue;
 
-        public AttributeResetterT(Attribute<T> aAttribute)
+        public StateVarResetterT(StateVar<T> aStateVar)
         {
-            mAttribute = aAttribute;
-            mOriginalValue = aAttribute.__ValueToBeAccessedByStateMachineOnly;
+            mStateVar = aStateVar;
+            mOriginalValue = aStateVar.__ValueToBeAccessedByStateMachineOnly;
         }
 
         public override void Reset()
         {
-            mAttribute.__ValueToBeAccessedByStateMachineOnly = mOriginalValue;
-            mAttribute = null; //@TODO: Add Dispose (or Finalize) that asserts that this is null (that Reset got called)
+            mStateVar.__ValueToBeAccessedByStateMachineOnly = mOriginalValue;
+            mStateVar = null; //@TODO: Add Dispose (or Finalize) that asserts that this is null (that Reset got called)
         }
     }
 
@@ -257,12 +284,19 @@ namespace Hsm
     // StateMachine
     ///////////////////////////////////////////////////////////////////////////
 
+    public enum TraceLevel
+    {
+        None = 0,
+        Basic = 1,
+        Diagnostic = 2
+    }
+
     public class StateMachine
     {
         private List<State> mStateStack = new List<State>();
         private object mOwner = null;
         private object mStateData = null;
-        private int mDebugLogLevel = 0; // 0 means no logging; 1 for basic logging (most useful), 2 for full logging
+        private TraceLevel mTraceLevel = TraceLevel.None;
         private Type mInitialStateType;
 
         public void Init<InitialStateType>(object aOwner = null, object aStateData = null) where InitialStateType : State
@@ -297,11 +331,11 @@ namespace Hsm
 
         public void Update(float aDeltaTime)
         {
-            EvaluateStateTransitions();
-            PerformStateActions(aDeltaTime);
+            ProcessStateTransitions();
+            UpdateStates(aDeltaTime);
         }
 
-        public void EvaluateStateTransitions()
+        public void ProcessStateTransitions()
         {
             bool isFinishedTransitioning = false;
             int loopCountdown = 100;
@@ -309,9 +343,9 @@ namespace Hsm
             {
                 if (loopCountdown == 4) // Something's wrong, start logging
                 {
-                    mDebugLogLevel = 2;
+                    mTraceLevel = TraceLevel.Diagnostic;
                 }
-                isFinishedTransitioning = EvaluateTransitionsOnce();
+                isFinishedTransitioning = ProcessStateTransitionsOnce();
             }
 
             if (loopCountdown == 0)
@@ -320,17 +354,32 @@ namespace Hsm
             }
         }
 
-        public void PerformStateActions(float aDeltaTime)
+        public void UpdateStates(float aDeltaTime)
         {
             foreach (State state in mStateStack)
             {
-                state.PerformStateActions(aDeltaTime);
+                state.Update(aDeltaTime);
             }
+        }
+
+        [Obsolete("Use ProcessStateTransitions instead")]
+        public void EvaluateStateTransitions()
+        {
+            ProcessStateTransitions();
+        }
+
+        [Obsolete("Use UpdateStates instead")]
+        public void PerformStateActions(float aDeltaTime)
+        {
+            UpdateStates(aDeltaTime);
         }
 
         public object Owner { get { return mOwner; } }
         public object StateData { get { return mStateData; } }
-        public int DebugLogLevel { get { return mDebugLogLevel; } set { mDebugLogLevel = value; } }
+        public TraceLevel TraceLevel { get { return mTraceLevel; } set { mTraceLevel = value; } }
+
+        [Obsolete("Use TraceLevel instead")]
+        public int DebugLogLevel { get { return (int)TraceLevel; } set { TraceLevel = (TraceLevel)value; } }
 
         public StateType FindState<StateType>() where StateType : State
         {
@@ -360,6 +409,11 @@ namespace Hsm
             if (aDepth >= 0 && aDepth < mStateStack.Count)
                 return mStateStack[aDepth];
             return null;
+        }
+
+        public State FindStateAtDepth<StateType>(int aDepth) where StateType : State
+        {
+            return FindStateAtDepth(aDepth) as StateType;
         }
 
         public StateType FindOuterStateFromDepth<StateType>(int aDepth) where StateType : State
@@ -467,9 +521,9 @@ namespace Hsm
             }
         }
 
-        private void LogTransition(int aLogLevel, int aDepth, string aTransitionName, Type aTargetStateType)
+        private void LogTransition(TraceLevel aTraceLevel, int aDepth, string aTransitionName, Type aTargetStateType)
         {
-            if (mDebugLogLevel < aLogLevel)
+            if (mTraceLevel < aTraceLevel)
                 return;
 
             string s = string.Format("HSM [{0}]:{1}{2,-11}{3}",
@@ -477,9 +531,6 @@ namespace Hsm
                 new String(' ', aDepth),
                 aTransitionName,
                 aTargetStateType);
-
-            if (mDebugLogLevel < aLogLevel)
-                return;
 
             Client.Log(this, s);
         }
@@ -526,12 +577,12 @@ namespace Hsm
         private void ExitState(State aState)
         {
             aState.OnExit();
-            aState.ResetAllAttributes();
+            aState.ResetAllStateVars();
         }
 
         private void PushState(Type aStateType, object[] aArgs, int aStackDepth)
         {
-            LogTransition(2, aStackDepth, "(Push)", aStateType);
+            LogTransition(TraceLevel.Diagnostic, aStackDepth, "(Push)", aStateType);
             State state = CreateState(aStateType, aStackDepth);
             mStateStack.Add(state);
             EnterState(state, aArgs);
@@ -548,7 +599,7 @@ namespace Hsm
             for (int depth = endDepth; depth >= aStartDepthInclusive; --depth)
             {
                 State currState = mStateStack[depth];
-                LogTransition(2, depth, "(Pop)", currState.GetType());
+                LogTransition(TraceLevel.Diagnostic, depth, "(Pop)", currState.GetType());
                 ExitState(currState);
             }
             mStateStack.RemoveRange(aStartDepthInclusive, endDepth - aStartDepthInclusive + 1);
@@ -565,18 +616,18 @@ namespace Hsm
         }
 
         // Returns true if state stack is unchanged after calling EvaluateTransition on each state (from outer to inner)
-        private bool EvaluateTransitionsOnce()
+        private bool ProcessStateTransitionsOnce()
         {
             if (mStateStack.Count == 0)
             {
-                LogTransition(1, 0, new Transition(TransitionType.Inner, mInitialStateType, null).ToString(), mInitialStateType);
+                LogTransition(TraceLevel.Basic, 0, new Transition(TransitionType.Inner, mInitialStateType, null).ToString(), mInitialStateType);
                 PushState(mInitialStateType, null, 0);
             }
 
             for (int currDepth = 0; currDepth < mStateStack.Count; ++currDepth)
             {
                 State currState = mStateStack[currDepth];
-                Transition trans = currState.EvaluateTransitions();
+                Transition trans = currState.GetTransition();
                 switch (trans.TransitionType)
                 {
                     case TransitionType.None:
@@ -589,7 +640,7 @@ namespace Hsm
                             break;
 
                         // Pop states below (if any) and push new one
-                        LogTransition(1, currDepth + 1, trans.ToString(), trans.TargetStateType);
+                        LogTransition(TraceLevel.Basic, currDepth + 1, trans.ToString(), trans.TargetStateType);
                         PopStatesFromDepth(currDepth + 1);
                         PushState(trans.TargetStateType, trans.Args, currDepth + 1);
                         return false;
@@ -599,12 +650,12 @@ namespace Hsm
                         if (HasStateAtDepth(currDepth + 1))
                             break;
 
-                        LogTransition(1, currDepth + 1, trans.ToString(), trans.TargetStateType);
+                        LogTransition(TraceLevel.Basic, currDepth + 1, trans.ToString(), trans.TargetStateType);
                         PushState(trans.TargetStateType, trans.Args, currDepth + 1);
                         return false;
 
                     case TransitionType.Sibling:
-                        LogTransition(1, currDepth, trans.ToString(), trans.TargetStateType);
+                        LogTransition(TraceLevel.Basic, currDepth, trans.ToString(), trans.TargetStateType);
                         PopStatesFromDepth(currDepth);
                         PushState(trans.TargetStateType, trans.Args, currDepth);
                         return false; // State stack has changed, evaluate from root again
