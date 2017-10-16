@@ -213,7 +213,14 @@ namespace Hsm
     // Transition
     ///////////////////////////////////////////////////////////////////////////
 
-    public enum TransitionType { None, Inner, InnerEntry, Sibling };
+    public enum TransitionType
+    {
+        None,
+        Inner,
+        InnerEntry,
+        Sibling
+    };
+
     public struct Transition
     {
         public TransitionType TransitionType;
@@ -227,46 +234,148 @@ namespace Hsm
             Args = aArgs;
         }
 
+        public override string ToString()
+        {
+            return TransitionType.ToString();
+        }
+
+        // None transition functions
+
         public static Transition None()
         {
             return new Transition(TransitionType.None, null, null);
         }
 
-        public static Transition Inner(Type aTargetStateType, params object[] aArgs)
+        // Inner transition functions
+
+        public static Transition Inner(Type aTargetStateType)
         {
-            //@NOTE: passing no 'params' results in a zero-length array, but we pass in null to simplify our code
-            return new Transition(TransitionType.Inner, aTargetStateType, aArgs.Length == 0 ? null : aArgs);
+            return new Transition(TransitionType.Inner, aTargetStateType, null);
+        }
+        public static Transition Inner(Type aTargetStateType, object arg1)
+        {
+            return new Transition(TransitionType.Inner, aTargetStateType, new object[] { arg1 });
+        }
+        public static Transition Inner(Type aTargetStateType, object arg1, object arg2)
+        {
+            return new Transition(TransitionType.Inner, aTargetStateType, new object[] { arg1, arg2 });
+        }
+        public static Transition Inner(Type aTargetStateType, object arg1, object arg2, object arg3)
+        {
+            return new Transition(TransitionType.Inner, aTargetStateType, new object[] { arg1, arg2, arg3 });
+        }
+        public static Transition Inner(Type aTargetStateType, object[] args)
+        {
+            return new Transition(TransitionType.Inner, aTargetStateType, args);
         }
 
-        public static Transition Inner<TargetStateType>(params object[] aArgs) where TargetStateType : State
+        public static Transition Inner<TargetStateType>() where TargetStateType : State
         {
-            //@NOTE: passing no 'params' results in a zero-length array, but we pass in null to simplify our code
-            return Inner(typeof(TargetStateType), aArgs);
+            return Inner(typeof(TargetStateType), null);
+        }
+        public static Transition Inner<TargetStateType>(object arg1) where TargetStateType : State
+        {
+            return Inner(typeof(TargetStateType), arg1);
+        }
+        public static Transition Inner<TargetStateType>(object arg1, object arg2) where TargetStateType : State
+        {
+            return Inner(typeof(TargetStateType), arg1, arg2);
+        }
+        public static Transition Inner<TargetStateType>(object arg1, object arg2, object arg3) where TargetStateType : State
+        {
+            return Inner(typeof(TargetStateType), arg1, arg2, arg3);
+        }
+        public static Transition Inner<TargetStateType>(object[] args) where TargetStateType : State
+        {
+            return Inner(typeof(TargetStateType), args);
         }
 
-        public static Transition InnerEntry(Type aTargetStateType, params object[] aArgs)
+        // InnerEntry transition functions
+
+        public static Transition InnerEntry(Type aTargetStateType)
         {
-            return new Transition(TransitionType.InnerEntry, aTargetStateType, aArgs.Length == 0 ? null : aArgs);
+            return new Transition(TransitionType.InnerEntry, aTargetStateType, null);
+        }
+        public static Transition InnerEntry(Type aTargetStateType, object arg1)
+        {
+            return new Transition(TransitionType.InnerEntry, aTargetStateType, new object[] { arg1 });
+        }
+        public static Transition InnerEntry(Type aTargetStateType, object arg1, object arg2)
+        {
+            return new Transition(TransitionType.InnerEntry, aTargetStateType, new object[] { arg1, arg2 });
+        }
+        public static Transition InnerEntry(Type aTargetStateType, object arg1, object arg2, object arg3)
+        {
+            return new Transition(TransitionType.InnerEntry, aTargetStateType, new object[] { arg1, arg2, arg3 });
+        }
+        public static Transition InnerEntry(Type aTargetStateType, object[] args)
+        {
+            return new Transition(TransitionType.InnerEntry, aTargetStateType, args);
         }
 
-        public static Transition InnerEntry<TargetStateType>(params object[] aArgs) where TargetStateType : State
+        public static Transition InnerEntry<TargetStateType>() where TargetStateType : State
         {
-            return InnerEntry(typeof(TargetStateType), aArgs);
+            return InnerEntry(typeof(TargetStateType), null);
+        }
+        public static Transition InnerEntry<TargetStateType>(object arg1) where TargetStateType : State
+        {
+            return InnerEntry(typeof(TargetStateType), arg1);
+        }
+        public static Transition InnerEntry<TargetStateType>(object arg1, object arg2) where TargetStateType : State
+        {
+            return InnerEntry(typeof(TargetStateType), arg1, arg2);
+        }
+        public static Transition InnerEntry<TargetStateType>(object arg1, object arg2, object arg3) where TargetStateType : State
+        {
+            return InnerEntry(typeof(TargetStateType), arg1, arg2, arg3);
+        }
+        public static Transition InnerEntry<TargetStateType>(object[] args) where TargetStateType : State
+        {
+            return InnerEntry(typeof(TargetStateType), args);
         }
 
-        public static Transition Sibling(Type aTargetStateType, params object[] aArgs)
+        // Sibling transition functions
+
+        public static Transition Sibling(Type aTargetStateType)
         {
-            return new Transition(TransitionType.Sibling, aTargetStateType, aArgs.Length == 0 ? null : aArgs);
+            return new Transition(TransitionType.Sibling, aTargetStateType, null);
+        }
+        public static Transition Sibling(Type aTargetStateType, object arg1)
+        {
+            return new Transition(TransitionType.Sibling, aTargetStateType, new object[] { arg1 });
+        }
+        public static Transition Sibling(Type aTargetStateType, object arg1, object arg2)
+        {
+            return new Transition(TransitionType.Sibling, aTargetStateType, new object[] { arg1, arg2 });
+        }
+        public static Transition Sibling(Type aTargetStateType, object arg1, object arg2, object arg3)
+        {
+            return new Transition(TransitionType.Sibling, aTargetStateType, new object[] { arg1, arg2, arg3 });
+        }
+        public static Transition Sibling(Type aTargetStateType, object[] args)
+        {
+            return new Transition(TransitionType.Sibling, aTargetStateType, args);
         }
 
-        public static Transition Sibling<TargetStateType>(params object[] aArgs) where TargetStateType : State
+        public static Transition Sibling<TargetStateType>() where TargetStateType : State
         {
-            return Sibling(typeof(TargetStateType), aArgs);
+            return Sibling(typeof(TargetStateType), null);
         }
-
-        public override string ToString()
+        public static Transition Sibling<TargetStateType>(object arg1) where TargetStateType : State
         {
-            return TransitionType.ToString();
+            return Sibling(typeof(TargetStateType), arg1);
+        }
+        public static Transition Sibling<TargetStateType>(object arg1, object arg2) where TargetStateType : State
+        {
+            return Sibling(typeof(TargetStateType), arg1, arg2);
+        }
+        public static Transition Sibling<TargetStateType>(object arg1, object arg2, object arg3) where TargetStateType : State
+        {
+            return Sibling(typeof(TargetStateType), arg1, arg2, arg3);
+        }
+        public static Transition Sibling<TargetStateType>(object[] args) where TargetStateType : State
+        {
+            return Sibling(typeof(TargetStateType), args);
         }
     }
 
