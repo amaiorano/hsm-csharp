@@ -39,7 +39,7 @@ namespace Hsm
     public class State
     {
         internal StateMachine mOwnerStateMachine;
-        internal List<AttributeResetter> mAttributeResetters = null;
+        internal List<StateVarResetter> mStateVarResetters = null;
         internal int mStackDepth;
 
         ///////////////////////////////
@@ -103,39 +103,42 @@ namespace Hsm
 
 
         ///////////////////////////////
-        // Attributes
+        // StateVars
         ///////////////////////////////
 
-        // Use to set value-type attribute
-        public void SetAttribute<T>(Attribute<T> aAttribute, T aValue) where T : struct
-        {
-            if (!IsAttributeInResetterList(aAttribute))
-                mAttributeResetters.Add(new AttributeResetterT<T>(aAttribute));
+        [System.Obsolete("Use SetStateVar instead", true)]
+        public void SetAttribute<T>(StateVar<T> aStateVar, T aValue) where T : struct { }
 
-            aAttribute.__ValueToBeAccessedByStateMachineOnly = aValue;
+        // Use to set value-type StateVar
+        public void SetStateVar<T>(StateVar<T> aStateVar, T aValue) where T : struct
+        {
+            if (!IsStateVarInResetterList(aStateVar))
+                mStateVarResetters.Add(new StateVarResetterT<T>(aStateVar));
+
+            aStateVar.__ValueToBeAccessedByStateMachineOnly = aValue;
         }
 
-        internal void ResetAllAttributes()
+        internal void ResetAllStateVars()
         {
-            if (mAttributeResetters == null)
+            if (mStateVarResetters == null)
                 return;
 
-            foreach (AttributeResetter resetter in mAttributeResetters)
+            foreach (StateVarResetter resetter in mStateVarResetters)
                 resetter.Reset();
 
-            mAttributeResetters.Clear();
+            mStateVarResetters.Clear();
         }
 
-        private bool IsAttributeInResetterList<T>(Attribute<T> aAttribute)
+        private bool IsStateVarInResetterList<T>(StateVar<T> aStateVar)
         {
-            if (mAttributeResetters == null) // First time, lazily create list
+            if (mStateVarResetters == null) // First time, lazily create list
             {
-                mAttributeResetters = new List<AttributeResetter>();
+                mStateVarResetters = new List<StateVarResetter>();
             }
             else
             {
-                foreach (AttributeResetter resetter in mAttributeResetters)
-                    if (resetter is AttributeResetterT<T>)
+                foreach (StateVarResetter resetter in mStateVarResetters)
+                    if (resetter is StateVarResetterT<T>)
                         return true;
             }
             return false;
@@ -170,46 +173,49 @@ namespace Hsm
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    // Attribute
+    // StateVar
     ///////////////////////////////////////////////////////////////////////////
 
-    public class Attribute<T>
+    [System.Obsolete("Renamed to StateVar<T> (Search & Replace \"Attribute\" with \"StateVar\")", true)]
+    public class Attribute<T> { }
+
+    public class StateVar<T>
     {
         // Do not access this value from states - would normally be private if I could declare friendship
         internal T __ValueToBeAccessedByStateMachineOnly;
 
-        public Attribute(T aInitialValue) { __ValueToBeAccessedByStateMachineOnly = aInitialValue; }
+        public StateVar(T aInitialValue) { __ValueToBeAccessedByStateMachineOnly = aInitialValue; }
 
-        // Use to read value of attribute
+        // Use to read value of StateVar
         public T Value { get { return __ValueToBeAccessedByStateMachineOnly; } }
 
-        public static implicit operator T(Attribute<T> aAttribute)
+        public static implicit operator T(StateVar<T> aStateVar)
         {
-            return aAttribute.Value;
+            return aStateVar.Value;
         }
     }
 
-    internal class AttributeResetter
+    internal class StateVarResetter
     {
         //@LAME: Can't use destructors like in C++
         public virtual void Reset() { }
     }
 
-    internal class AttributeResetterT<T> : AttributeResetter
+    internal class StateVarResetterT<T> : StateVarResetter
     {
-        private Attribute<T> mAttribute;
+        private StateVar<T> mStateVar;
         private T mOriginalValue;
 
-        public AttributeResetterT(Attribute<T> aAttribute)
+        public StateVarResetterT(StateVar<T> aStateVar)
         {
-            mAttribute = aAttribute;
-            mOriginalValue = aAttribute.__ValueToBeAccessedByStateMachineOnly;
+            mStateVar = aStateVar;
+            mOriginalValue = aStateVar.__ValueToBeAccessedByStateMachineOnly;
         }
 
         public override void Reset()
         {
-            mAttribute.__ValueToBeAccessedByStateMachineOnly = mOriginalValue;
-            mAttribute = null; //@TODO: Add Dispose (or Finalize) that asserts that this is null (that Reset got called)
+            mStateVar.__ValueToBeAccessedByStateMachineOnly = mOriginalValue;
+            mStateVar = null; //@TODO: Add Dispose (or Finalize) that asserts that this is null (that Reset got called)
         }
     }
 
@@ -565,7 +571,7 @@ namespace Hsm
         private void ExitState(State aState)
         {
             aState.OnExit();
-            aState.ResetAllAttributes();
+            aState.ResetAllStateVars();
         }
 
         private void PushState(Type aStateType, object[] aArgs, int aStackDepth)
