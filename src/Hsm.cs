@@ -284,12 +284,19 @@ namespace Hsm
     // StateMachine
     ///////////////////////////////////////////////////////////////////////////
 
+    public enum TraceLevel
+    {
+        None = 0,
+        Basic = 1,
+        Diagnostic = 2
+    }
+
     public class StateMachine
     {
         private List<State> mStateStack = new List<State>();
         private object mOwner = null;
         private object mStateData = null;
-        private int mDebugLogLevel = 0; // 0 means no logging; 1 for basic logging (most useful), 2 for full logging
+        private TraceLevel mTraceLevel = TraceLevel.None;
         private Type mInitialStateType;
 
         public void Init<InitialStateType>(object aOwner = null, object aStateData = null) where InitialStateType : State
@@ -336,7 +343,7 @@ namespace Hsm
             {
                 if (loopCountdown == 4) // Something's wrong, start logging
                 {
-                    mDebugLogLevel = 2;
+                    mTraceLevel = TraceLevel.Diagnostic;
                 }
                 isFinishedTransitioning = ProcessStateTransitionsOnce();
             }
@@ -355,7 +362,6 @@ namespace Hsm
             }
         }
 
-
         [System.Obsolete("Use ProcessStateTransitions instead")]
         public void EvaluateStateTransitions()
         {
@@ -370,7 +376,10 @@ namespace Hsm
 
         public object Owner { get { return mOwner; } }
         public object StateData { get { return mStateData; } }
-        public int DebugLogLevel { get { return mDebugLogLevel; } set { mDebugLogLevel = value; } }
+        public TraceLevel TraceLevel { get { return mTraceLevel; } set { mTraceLevel = value; } }
+
+        [System.Obsolete("Use TraceLevel instead")]
+        public int DebugLogLevel { get { return (int)TraceLevel; } set { TraceLevel = (TraceLevel)value; } }
 
         public StateType FindState<StateType>() where StateType : State
         {
@@ -512,9 +521,9 @@ namespace Hsm
             }
         }
 
-        private void LogTransition(int aLogLevel, int aDepth, string aTransitionName, Type aTargetStateType)
+        private void LogTransition(TraceLevel aTraceLevel, int aDepth, string aTransitionName, Type aTargetStateType)
         {
-            if (mDebugLogLevel < aLogLevel)
+            if (mTraceLevel < aTraceLevel)
                 return;
 
             string s = string.Format("HSM [{0}]:{1}{2,-11}{3}",
@@ -522,9 +531,6 @@ namespace Hsm
                 new String(' ', aDepth),
                 aTransitionName,
                 aTargetStateType);
-
-            if (mDebugLogLevel < aLogLevel)
-                return;
 
             Client.Log(this, s);
         }
@@ -576,7 +582,7 @@ namespace Hsm
 
         private void PushState(Type aStateType, object[] aArgs, int aStackDepth)
         {
-            LogTransition(2, aStackDepth, "(Push)", aStateType);
+            LogTransition(TraceLevel.Diagnostic, aStackDepth, "(Push)", aStateType);
             State state = CreateState(aStateType, aStackDepth);
             mStateStack.Add(state);
             EnterState(state, aArgs);
@@ -593,7 +599,7 @@ namespace Hsm
             for (int depth = endDepth; depth >= aStartDepthInclusive; --depth)
             {
                 State currState = mStateStack[depth];
-                LogTransition(2, depth, "(Pop)", currState.GetType());
+                LogTransition(TraceLevel.Diagnostic, depth, "(Pop)", currState.GetType());
                 ExitState(currState);
             }
             mStateStack.RemoveRange(aStartDepthInclusive, endDepth - aStartDepthInclusive + 1);
@@ -614,7 +620,7 @@ namespace Hsm
         {
             if (mStateStack.Count == 0)
             {
-                LogTransition(1, 0, new Transition(TransitionType.Inner, mInitialStateType, null).ToString(), mInitialStateType);
+                LogTransition(TraceLevel.Basic, 0, new Transition(TransitionType.Inner, mInitialStateType, null).ToString(), mInitialStateType);
                 PushState(mInitialStateType, null, 0);
             }
 
@@ -634,7 +640,7 @@ namespace Hsm
                             break;
 
                         // Pop states below (if any) and push new one
-                        LogTransition(1, currDepth + 1, trans.ToString(), trans.TargetStateType);
+                        LogTransition(TraceLevel.Basic, currDepth + 1, trans.ToString(), trans.TargetStateType);
                         PopStatesFromDepth(currDepth + 1);
                         PushState(trans.TargetStateType, trans.Args, currDepth + 1);
                         return false;
@@ -644,12 +650,12 @@ namespace Hsm
                         if (HasStateAtDepth(currDepth + 1))
                             break;
 
-                        LogTransition(1, currDepth + 1, trans.ToString(), trans.TargetStateType);
+                        LogTransition(TraceLevel.Basic, currDepth + 1, trans.ToString(), trans.TargetStateType);
                         PushState(trans.TargetStateType, trans.Args, currDepth + 1);
                         return false;
 
                     case TransitionType.Sibling:
-                        LogTransition(1, currDepth, trans.ToString(), trans.TargetStateType);
+                        LogTransition(TraceLevel.Basic, currDepth, trans.ToString(), trans.TargetStateType);
                         PopStatesFromDepth(currDepth);
                         PushState(trans.TargetStateType, trans.Args, currDepth);
                         return false; // State stack has changed, evaluate from root again

@@ -106,7 +106,7 @@ class Player
     public void Init()
     {
         mStateMachine.Init<PlayerHsm.Root>(this, new PlayerHsm.StateData());
-        mStateMachine.DebugLogLevel = 2;
+        mStateMachine.TraceLevel = Hsm.TraceLevel.Diagnostic;
     }
 
     public void Shutdown()
