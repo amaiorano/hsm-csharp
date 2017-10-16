@@ -52,10 +52,10 @@ namespace Hsm
         public virtual Transition GetTransition() { return Transition.None(); }
         public virtual void Update(float aDeltaTime) { }
 
-        [System.Obsolete("Use GetTransition instead")]
+        [Obsolete("Use GetTransition instead")]
         public virtual Transition EvaluateTransitions() { return GetTransition(); }
 
-        [System.Obsolete("Use Update instead")]
+        [Obsolete("Use Update instead")]
         public virtual void PerformStateActions(float aDeltaTime) { Update(aDeltaTime); }
 
 
@@ -65,7 +65,7 @@ namespace Hsm
 
         public StateMachine StateMachine { get { return mOwnerStateMachine; } }
 
-        [System.Obsolete("Use StateMachine property instead")]
+        [Obsolete("Use StateMachine property instead")]
         public StateMachine OwnerStateMachine { get { return StateMachine; } }
 
         public StateType FindState<StateType>() where StateType : State { return mOwnerStateMachine.FindState<StateType>(); }
@@ -106,7 +106,7 @@ namespace Hsm
         // StateVars
         ///////////////////////////////
 
-        [System.Obsolete("Use SetStateVar instead", true)]
+        [Obsolete("Use SetStateVar instead", true)]
         public void SetAttribute<T>(StateVar<T> aStateVar, T aValue) where T : struct { }
 
         // Use to set value-type StateVar
@@ -176,7 +176,7 @@ namespace Hsm
     // StateVar
     ///////////////////////////////////////////////////////////////////////////
 
-    [System.Obsolete("Renamed to StateVar<T> (Search & Replace \"Attribute\" with \"StateVar\")", true)]
+    [Obsolete("Renamed to StateVar<T> (Search & Replace \"Attribute\" with \"StateVar\")", true)]
     public class Attribute<T> { }
 
     public class StateVar<T>
@@ -362,13 +362,13 @@ namespace Hsm
             }
         }
 
-        [System.Obsolete("Use ProcessStateTransitions instead")]
+        [Obsolete("Use ProcessStateTransitions instead")]
         public void EvaluateStateTransitions()
         {
             ProcessStateTransitions();
         }
 
-        [System.Obsolete("Use UpdateStates instead")]
+        [Obsolete("Use UpdateStates instead")]
         public void PerformStateActions(float aDeltaTime)
         {
             UpdateStates(aDeltaTime);
@@ -378,7 +378,7 @@ namespace Hsm
         public object StateData { get { return mStateData; } }
         public TraceLevel TraceLevel { get { return mTraceLevel; } set { mTraceLevel = value; } }
 
-        [System.Obsolete("Use TraceLevel instead")]
+        [Obsolete("Use TraceLevel instead")]
         public int DebugLogLevel { get { return (int)TraceLevel; } set { TraceLevel = (TraceLevel)value; } }
 
         public StateType FindState<StateType>() where StateType : State
