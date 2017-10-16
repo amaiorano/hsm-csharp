@@ -20,7 +20,7 @@ namespace Hsm
     public class Version
     {
         public static int Major = 1;
-        public static int Minor = 0;
+        public static int Minor = 1;
         public static int Patch = 0;
         public static string String = string.Format("{0}.{1}.{2}", Major, Minor, Patch);
     }
