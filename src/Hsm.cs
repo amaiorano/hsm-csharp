@@ -6,13 +6,10 @@
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-using System;
-using System.Reflection;
-using System.Diagnostics;
-using System.Collections.Generic;
-
 namespace Hsm
 {
+    using System;
+    using System.Collections.Generic;
     using System.Reflection;
     using System.Diagnostics;
     using System.Text;
