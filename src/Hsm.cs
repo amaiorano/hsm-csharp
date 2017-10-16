@@ -135,8 +135,11 @@ namespace Hsm
             else
             {
                 foreach (StateVarResetter resetter in mStateVarResetters)
-                    if (resetter is StateVarResetterT<T>)
+                {
+                    var r = resetter as StateVarResetterT<T>;
+                    if (r != null && r.StateVar == aStateVar)
                         return true;
+                }
             }
             return false;
         }
@@ -207,6 +210,8 @@ namespace Hsm
             mStateVar.__ValueToBeAccessedByStateMachineOnly = mOriginalValue;
             mStateVar = null; //@TODO: Add Dispose (or Finalize) that asserts that this is null (that Reset got called)
         }
+
+        public StateVar<T> StateVar { get { return mStateVar; } }
     }
 
     ///////////////////////////////////////////////////////////////////////////
