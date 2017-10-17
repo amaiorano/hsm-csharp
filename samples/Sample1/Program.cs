@@ -11,7 +11,7 @@ namespace Sample1
 
         private int Health = 100;
         private bool StateDataBool = false;
-        private Hsm.StateVar<float> StateVar_Test = new Hsm.StateVar<float>(12.03f);
+        private Hsm.StateValue<float> StateValue_Test = new Hsm.StateValue<float>(12.03f);
 
 
         public void Init()
@@ -46,7 +46,7 @@ namespace Sample1
             {
                 public override void OnEnter()
                 {
-                    SetStateVar(Owner.StateVar_Test, 1.0f);
+                    SetStateValue(Owner.StateValue_Test, 1.0f);
                 }
 
                 public override Transition GetTransition()
@@ -79,7 +79,7 @@ namespace Sample1
                 public override void OnEnter(object[] aArgs)
                 {
                     string s = (string)aArgs[0];
-                    SetStateVar(Owner.StateVar_Test, 2.0f);
+                    SetStateValue(Owner.StateValue_Test, 2.0f);
                 }
 
                 public override Transition GetTransition()
@@ -93,7 +93,7 @@ namespace Sample1
                 public override void Update(float aDeltaTime)
                 {
                     Console.Out.WriteLine("Player's Health: {0}, StateDataBool: {1}", Owner.Health, Owner.StateDataBool);
-                    Console.Out.WriteLine("Owner.StateVar_Test: {0}", Owner.StateVar_Test.Value);
+                    Console.Out.WriteLine("Owner.StateValue_Test: {0}", Owner.StateValue_Test.Value);
                 }
 
                 int count;
@@ -103,9 +103,9 @@ namespace Sample1
             {
                 public override void Update(float aDeltaTime)
                 {
-                    Console.Out.WriteLine("Owner.StateVar_Test: {0}", Owner.StateVar_Test.Value);
+                    Console.Out.WriteLine("Owner.StateValue_Test: {0}", Owner.StateValue_Test.Value);
 
-                    SetStateVar(Owner.StateVar_Test, 3.0f);
+                    SetStateValue(Owner.StateValue_Test, 3.0f);
                 }
             }
 

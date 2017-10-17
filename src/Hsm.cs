@@ -36,7 +36,7 @@ namespace Hsm
     public class State
     {
         internal StateMachine mOwnerStateMachine;
-        internal List<StateVarResetter> mStateVarResetters = null;
+        internal List<StateValueResetter> mStateValueResetters = null;
         internal int mStackDepth;
 
         ///////////////////////////////
@@ -100,44 +100,44 @@ namespace Hsm
 
 
         ///////////////////////////////
-        // StateVars
+        // StateValues
         ///////////////////////////////
 
-        [Obsolete("Use SetStateVar instead", true)]
-        public void SetAttribute<T>(StateVar<T> aStateVar, T aValue) where T : struct { }
+        [Obsolete("Use SetStateValue instead", true)]
+        public void SetAttribute<T>(StateValue<T> aStateValue, T aValue) where T : struct { }
 
-        // Use to set value-type StateVar
-        public void SetStateVar<T>(StateVar<T> aStateVar, T aValue) where T : struct
+        // Use to set value-type StateValue
+        public void SetStateValue<T>(StateValue<T> aStateValue, T aValue) where T : struct
         {
-            if (!IsStateVarInResetterList(aStateVar))
-                mStateVarResetters.Add(new StateVarResetterT<T>(aStateVar));
+            if (!IsStateValueInResetterList(aStateValue))
+                mStateValueResetters.Add(new StateValueResetterT<T>(aStateValue));
 
-            aStateVar.__ValueToBeAccessedByStateMachineOnly = aValue;
+            aStateValue.__ValueToBeAccessedByStateMachineOnly = aValue;
         }
 
-        internal void ResetAllStateVars()
+        internal void ResetAllStateValues()
         {
-            if (mStateVarResetters == null)
+            if (mStateValueResetters == null)
                 return;
 
-            foreach (StateVarResetter resetter in mStateVarResetters)
+            foreach (StateValueResetter resetter in mStateValueResetters)
                 resetter.Reset();
 
-            mStateVarResetters.Clear();
+            mStateValueResetters.Clear();
         }
 
-        private bool IsStateVarInResetterList<T>(StateVar<T> aStateVar)
+        private bool IsStateValueInResetterList<T>(StateValue<T> aStateValue)
         {
-            if (mStateVarResetters == null) // First time, lazily create list
+            if (mStateValueResetters == null) // First time, lazily create list
             {
-                mStateVarResetters = new List<StateVarResetter>();
+                mStateValueResetters = new List<StateValueResetter>();
             }
             else
             {
-                foreach (StateVarResetter resetter in mStateVarResetters)
+                foreach (StateValueResetter resetter in mStateValueResetters)
                 {
-                    var r = resetter as StateVarResetterT<T>;
-                    if (r != null && r.StateVar == aStateVar)
+                    var r = resetter as StateValueResetterT<T>;
+                    if (r != null && r.StateValue == aStateValue)
                         return true;
                 }
             }
@@ -166,52 +166,52 @@ namespace Hsm
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    // StateVar
+    // StateValue
     ///////////////////////////////////////////////////////////////////////////
 
-    [Obsolete("Renamed to StateVar<T> (Search & Replace \"Attribute\" with \"StateVar\")", true)]
+    [Obsolete("Renamed to StateValue<T> (Search & Replace \"Attribute\" with \"StateValue\")", true)]
     public class Attribute<T> { }
 
-    public class StateVar<T>
+    public class StateValue<T>
     {
         // Do not access this value from states - would normally be private if I could declare friendship
         internal T __ValueToBeAccessedByStateMachineOnly;
 
-        public StateVar(T aInitialValue) { __ValueToBeAccessedByStateMachineOnly = aInitialValue; }
+        public StateValue(T aInitialValue) { __ValueToBeAccessedByStateMachineOnly = aInitialValue; }
 
-        // Use to read value of StateVar
+        // Use to read value of StateValue
         public T Value { get { return __ValueToBeAccessedByStateMachineOnly; } }
 
-        public static implicit operator T(StateVar<T> aStateVar)
+        public static implicit operator T(StateValue<T> aStateValue)
         {
-            return aStateVar.Value;
+            return aStateValue.Value;
         }
     }
 
-    internal class StateVarResetter
+    internal class StateValueResetter
     {
         //@LAME: Can't use destructors like in C++
         public virtual void Reset() { }
     }
 
-    internal class StateVarResetterT<T> : StateVarResetter
+    internal class StateValueResetterT<T> : StateValueResetter
     {
-        private StateVar<T> mStateVar;
+        private StateValue<T> mStateValue;
         private T mOriginalValue;
 
-        public StateVarResetterT(StateVar<T> aStateVar)
+        public StateValueResetterT(StateValue<T> aStateValue)
         {
-            mStateVar = aStateVar;
-            mOriginalValue = aStateVar.__ValueToBeAccessedByStateMachineOnly;
+            mStateValue = aStateValue;
+            mOriginalValue = aStateValue.__ValueToBeAccessedByStateMachineOnly;
         }
 
         public override void Reset()
         {
-            mStateVar.__ValueToBeAccessedByStateMachineOnly = mOriginalValue;
-            mStateVar = null; //@TODO: Add Dispose (or Finalize) that asserts that this is null (that Reset got called)
+            mStateValue.__ValueToBeAccessedByStateMachineOnly = mOriginalValue;
+            mStateValue = null; //@TODO: Add Dispose (or Finalize) that asserts that this is null (that Reset got called)
         }
 
-        public StateVar<T> StateVar { get { return mStateVar; } }
+        public StateValue<T> StateValue { get { return mStateValue; } }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -678,7 +678,7 @@ namespace Hsm
         private void ExitState(State aState)
         {
             aState.OnExit();
-            aState.ResetAllStateVars();
+            aState.ResetAllStateValues();
         }
 
         private void PushState(Type aStateType, object[] aArgs, int aStackDepth)
