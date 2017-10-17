@@ -9,10 +9,21 @@ namespace Sample1
 
         private Hsm.StateMachine mStateMachine = new Hsm.StateMachine();
 
+        private class Foo
+        {
+            public int value1;
+            public int value2;
+            public override string ToString()
+            {
+                return string.Format("value1: {0}, value2: {1}", value1, value2);
+            }
+        }
+
         private int Health = 100;
         private bool StateDataBool = false;
         private Hsm.StateValue<float> StateValue_Test = new Hsm.StateValue<float>(12.03f);
-
+        private Hsm.StateValue<string> StateValue_String = new Hsm.StateValue<string>("Hello");
+        private Hsm.StateValue<Foo> StateValue_Foo = new Hsm.StateValue<Foo>();
 
         public void Init()
         {
@@ -28,6 +39,10 @@ namespace Sample1
         public void Update(float aDeltaTime)
         {
             mStateMachine.Update(aDeltaTime);
+
+            Console.Out.WriteLine("StateValue_Test: {0}", StateValue_Test.Value);
+            Console.Out.WriteLine("StateValue_String: {0}", StateValue_String.Value);
+            Console.Out.WriteLine("StateValue_Foo: {0}", StateValue_Foo.Value);
         }
     }
 }
@@ -80,6 +95,13 @@ namespace Sample1
                 {
                     string s = (string)aArgs[0];
                     SetStateValue(Owner.StateValue_Test, 2.0f);
+
+                    SetStateValue(Owner.StateValue_String, "Goodbye");
+
+                    Foo foo = new Foo();
+                    foo.value1 = 12;
+                    foo.value2 = 13;
+                    SetStateValue(Owner.StateValue_Foo, foo);
                 }
 
                 public override Transition GetTransition()
@@ -93,7 +115,6 @@ namespace Sample1
                 public override void Update(float aDeltaTime)
                 {
                     Console.Out.WriteLine("Player's Health: {0}, StateDataBool: {1}", Owner.Health, Owner.StateDataBool);
-                    Console.Out.WriteLine("Owner.StateValue_Test: {0}", Owner.StateValue_Test.Value);
                 }
 
                 int count;
@@ -103,8 +124,6 @@ namespace Sample1
             {
                 public override void Update(float aDeltaTime)
                 {
-                    Console.Out.WriteLine("Owner.StateValue_Test: {0}", Owner.StateValue_Test.Value);
-
                     SetStateValue(Owner.StateValue_Test, 3.0f);
                 }
             }

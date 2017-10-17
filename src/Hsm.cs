@@ -107,7 +107,7 @@ namespace Hsm
         public void SetAttribute<T>(StateValue<T> aStateValue, T aValue) where T : struct { }
 
         // Use to set value-type StateValue
-        public void SetStateValue<T>(StateValue<T> aStateValue, T aValue) where T : struct
+        public void SetStateValue<T>(StateValue<T> aStateValue, T aValue)
         {
             if (!IsStateValueInResetterList(aStateValue))
                 mStateValueResetters.Add(new StateValueResetterT<T>(aStateValue));
@@ -177,6 +177,7 @@ namespace Hsm
         // Do not access this value from states - would normally be private if I could declare friendship
         internal T __ValueToBeAccessedByStateMachineOnly;
 
+        public StateValue() {}
         public StateValue(T aInitialValue) { __ValueToBeAccessedByStateMachineOnly = aInitialValue; }
 
         // Use to read value of StateValue
