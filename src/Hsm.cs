@@ -461,7 +461,9 @@ namespace Hsm
         {
             foreach (State state in mStateStack)
             {
-                state.Update(aDeltaTime);
+                #pragma warning disable CS0618
+                state.PerformStateActions(aDeltaTime);
+                #pragma warning restore CS0618
             }
         }
 
@@ -729,7 +731,9 @@ namespace Hsm
             for (int currDepth = 0; currDepth < mStateStack.Count; ++currDepth)
             {
                 State currState = mStateStack[currDepth];
-                Transition trans = currState.GetTransition();
+                #pragma warning disable CS0618
+                Transition trans = currState.EvaluateTransitions();
+                #pragma warning restore CS0618
                 switch (trans.TransitionType)
                 {
                     case TransitionType.None:
