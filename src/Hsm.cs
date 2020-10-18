@@ -78,6 +78,7 @@ namespace Hsm
         }
         public bool IsInOuterState<StateType>() where StateType : State { return FindOuterState<StateType>() != null; }
 
+        public bool HasInnerState() { return mOwnerStateMachine.HasStateAtDepth(mStackDepth + 1); }
         public StateType FindInnerState<StateType>() where StateType : State { return mOwnerStateMachine.FindInnerStateFromDepth<StateType>(mStackDepth); }
         public StateType GetInnerState<StateType>() where StateType : State
         {
@@ -508,6 +509,11 @@ namespace Hsm
             return FindState<StateType>() != null;
         }
 
+        public bool HasStateAtDepth(int aDepth)
+        {
+            return aDepth < mStateStack.Count;
+        }
+
         public State FindStateAtDepth(int aDepth)
         {
             if (aDepth >= 0 && aDepth < mStateStack.Count)
@@ -707,11 +713,6 @@ namespace Hsm
                 ExitState(currState);
             }
             mStateStack.RemoveRange(aStartDepthInclusive, endDepth - aStartDepthInclusive + 1);
-        }
-
-        private bool HasStateAtDepth(int aDepth)
-        {
-            return aDepth < mStateStack.Count;
         }
 
         private State GetStateAtDepth(int aDepth)
