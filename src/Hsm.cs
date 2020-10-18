@@ -87,7 +87,7 @@ namespace Hsm
         }
         public bool IsInInnerState<StateType>() where StateType : State { return FindInnerState<StateType>() != null; }
 
-        public StateType FindImmediateInnerState<StateType>() where StateType : State { return FindImmediateInnerState<StateType>(); }
+        public StateType FindImmediateInnerState<StateType>() where StateType : State { return mOwnerStateMachine.FindStateAtDepth<StateType>(mStackDepth + 1) as StateType; }
         public StateType GetImmediateInnerState<StateType>() where StateType : State
         {
             StateType result = FindImmediateInnerState<StateType>();
